@@ -21,9 +21,19 @@ class ELFExporterPlugin(idaapi.plugin_t):
         pass
 
    def export_elf_segments(self, export_address=None):
-    base_addr = idaapi.get_imagebase()
-    elf_file_path = idc.AskFile(1, "*.elf", "Choose an ELF file to export segments")
-
+       base_addr = idaapi.get_imagebase()
+        with open(elf_file_path, "wb") as dumpfile:
+            elf_file_path = idc.AskFile(1, "*", "Choose a file to export segments")
+        
+        # 使用magic库检查文件类型
+        file_type = magic.Magic()
+        file_info = file_type.from_file(elf_file_path)
+        
+        if "ELF" not in file_info:
+            print(f"{elf_file_path} is not an ELF file.")
+            return
+        
+        with open(elf_file_path, "wb") as dumpfile:
     if not elf_file_path:
         return
 
