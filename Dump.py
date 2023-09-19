@@ -6,9 +6,9 @@ improt magic
 
 class ELFExporterPlugin(idaapi.plugin_t):
     flags = idaapi.PLUGIN_PROC | idaapi.PLUGIN_MOD
-    comment = "Export ELF segments"
-    help = "Export ELF segments to a file"
-    wanted_name = "ELF Exporter"
+    comment = "DUMP ELF segments"
+    help = "dump ELF segments to a file"
+    wanted_name = "ELF DUMP"
     wanted_hotkey = ""
 
     def init(self):
@@ -22,22 +22,23 @@ class ELFExporterPlugin(idaapi.plugin_t):
 
    def export_elf_segments(self, export_address=None):
        base_addr = idaapi.get_imagebase()
+       elf_file_path = idc.AskFile(1, "*.elf", "选择文件")
+       if not elf_file_path:
+        return
         with open(elf_file_path, "wb") as dumpfile:
-            elf_file_path = idc.AskFile(1, "*", "Choose a file to export segments")
+            
         
         # 使用magic库检查文件类型
         file_type = magic.Magic()
         file_info = file_type.from_file(elf_file_path)
         
         if "ELF" not in file_info:
-            print(f"{elf_file_path} is not an ELF file.")
+            print(f"{elf_file_path} 不存在")
             return
-        
-        with open(elf_file_path, "wb") as dumpfile:
-    if not elf_file_path:
-        return
+    
 
-    with open(elf_file_path, "wb") as dumpfile:
+        with open(elf_file_path, "wb") as dumpfile:
+            elf_file_path = idc.AskFile(1, "*.elf", "选择文件")
         for segment_ea in idautils.Segments():
             seg = idaapi.getseg(segment_ea)
             if seg:
@@ -48,13 +49,13 @@ class ELFExporterPlugin(idaapi.plugin_t):
 
                 # 确保该片段位于 ELF 
                 if seg_offset >= 0:
-                    print(f"Exporting segment {seg} to file...")
+                    print(f"将段导出到文件中..")
                     self.dump_segment(dumpfile, seg_start, seg_size, seg_offset)
 
-        print(f"Export completed. Segments saved to {elf_file_path}")
+        print(f"成功. 保存到 {elf_file_path}")
 
     if export_address:
-        export_file_path = idc.AskFile(1, "*.bin", "Choose a destination file to export data")
+        export_file_path = idc.AskFile(1, "*.bin", "选择导出数据的目标文件")
 
         if not export_file_path:
             return
@@ -66,15 +67,15 @@ class ELFExporterPlugin(idaapi.plugin_t):
             seg_size = seg_end - seg_start
             seg_offset = seg_start - base_addr
 
-            # Ensure the selected address is within the ELF image
+            # 确保该片段位于 ELF 
             if seg_offset >= 0:
                 with open(export_file_path, "wb") as exportfile:
                     self.dump_segment(exportfile, seg_start, seg_size, seg_offset)
                 print(f"Exported data at address {hex(export_address)} to {export_file_path}")
-
+# run方法在插件执行被调用，idaapi.AskLong 来获取用户输入的地址
   def run(self, arg):
     if arg:
-        export_address = idc.AskLong(0, "Enter the address to export data from (hex):")
+        export_address = idc.AskLong(0, "Enter the address (hex):")
         if export_address is None:
             return
         self.export_elf_segments(export_address)
