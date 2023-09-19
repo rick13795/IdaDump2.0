@@ -46,7 +46,7 @@ class ELFExporterPlugin(idaapi.plugin_t):
                 seg_size = seg_end - seg_start
                 seg_offset = seg_start - base_addr
 
-                # Ensure the segment is within the ELF image
+                # 确保该片段位于 ELF 
                 if seg_offset >= 0:
                     print(f"Exporting segment {seg} to file...")
                     self.dump_segment(dumpfile, seg_start, seg_size, seg_offset)
